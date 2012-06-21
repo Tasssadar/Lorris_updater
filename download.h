@@ -50,5 +50,4 @@ public:
     static bool download(char *url, bool reload=false, void (*update)(unsigned long, unsigned long)=NULL);
 };
 
-
 #endif
