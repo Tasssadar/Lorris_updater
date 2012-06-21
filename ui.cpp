@@ -2,6 +2,7 @@
 #include <commctrl.h>
 
 #include "ui.h"
+#include "download.h"
 
 HWND Ui::m_progress = 0;
 HWND Ui::m_label = 0;
@@ -72,5 +73,6 @@ void Ui::processCmd(int cmd)
 {
     if(cmd != IDB_CANCEL)
         return;
+    runWorkThread = false;
     PostQuitMessage(0);
 }

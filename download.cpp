@@ -43,9 +43,7 @@ bool Download::download(char *url, bool reload, void (*update)(unsigned long, un
             throw DLExc("Can't connect");
 
         // Open internet connection
-        BSTR down = Ui::toWString("downloader");
-        hInet = InternetOpen(down, INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
-        ::SysFreeString(down);
+        hInet = InternetOpen(TEXT("downloader"), INTERNET_OPEN_TYPE_DIRECT, NULL, NULL, 0);
         if(hInet == NULL)
             throw DLExc("Can't open connection");
 
@@ -101,9 +99,12 @@ bool Download::download(char *url, bool reload, void (*update)(unsigned long, un
     }
     catch (DLExc)
     {
-        fout.close();
-        InternetCloseHandle(hIurl);
-        InternetCloseHandle(hInet);
+        if(fout.is_open())
+        {
+            fout.close();
+            InternetCloseHandle(hIurl);
+            InternetCloseHandle(hInet);
+        }
 
         // rethrow the exception for use by the caller
         throw;
@@ -159,7 +160,14 @@ bool Download::getfname(char *url, char *fname)
     if(p && (strlen(p) < MAX_FILENAME_SIZE))
     {
         p++;
-        strcpy(fname, p);
+        WCHAR buff[MAX_PATH];
+        GetTempPath(MAX_PATH, buff);
+        
+        char str[MAX_PATH];
+        for(int i = 0; !i || buff[i-1] != 0; ++i)
+            str[i] = buff[i];
+
+        sprintf(fname, "%s\%s", str, p);
         return true;
     }
     else
@@ -185,7 +193,7 @@ unsigned long Download::openfile(char *url, bool reload, ofstream &fout)
         fout.open(fname, ios::binary | ios::out | ios::trunc);
 
     if(!fout)
-        throw DLExc("Can't open output file");
+        throw DLExc(fname);
 
     // get current file length
     return fout.tellp();

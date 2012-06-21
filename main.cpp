@@ -6,24 +6,26 @@
 #include "ui.h"
 #include "download.h"
 
+#define MANIFEST_URL "http://dl.dropbox.com/u/54372958/lorris.txt"
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 DWORD WINAPI WorkThread(LPVOID pParam);
 volatile bool runWorkThread = true;
 
-char *mode = new char[20];
+char mode[20];
 int rev = -1;
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                    PSTR szCmdLine, int iCmdShow)
 {
+    Ui::set(hInstance);
+    strcpy(mode, "release");
+
     TCHAR szAppName[] = TEXT("Lorris updater");
     HWND hWnd;
     MSG msg;
     WNDCLASSEX wc;
-
-    Ui::set(hInstance);
-    strcpy(mode, "release");
     
     wc.cbSize = sizeof(wc);
     wc.style = CS_HREDRAW | CS_VREDRAW;
@@ -54,6 +56,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     UpdateWindow(hWnd);
     
     CreateThread(NULL, 0, WorkThread, NULL, 0, 0);
+
     while(GetMessage(&msg, NULL, 0, 0))
     {
           TranslateMessage(&msg);
@@ -104,25 +107,25 @@ static void updateVerInfo()
     else
     {
         FILE *file = _popen("Lorris.exe -v", "r");
-        if(file)
-        {
-            char str[200];
-            *str = 0;
-            fgets(str, 200, file);   
-            fclose(file);
+        if(!file)
+            return;
 
-            if(*str != 0)
+        char str[200];
+        *str = 0;
+        fgets(str, 200, file);   
+        fclose(file);
+
+        if(*str != 0)
+        {
+            char *pch = strtok(str, " ,-");
+            for (int cnt = 0; pch != NULL; ++cnt)
             {
-                char *pch = strtok(str, " ,-");
-                for (int cnt = 0; pch != NULL; ++cnt)
+                switch(cnt)
                 {
-                    switch(cnt)
-                    {
-                        case 3: strcpy(mode, pch); break;
-                        case 6: rev = atoi(pch); break;
-                    }
-                    pch = strtok(NULL, " ,-");
+                    case 3: strcpy(mode, pch); break;
+                    case 6: rev = atoi(pch); break;
                 }
+                pch = strtok(NULL, " ,-");
             }
         }
     }
@@ -130,14 +133,17 @@ static void updateVerInfo()
 
 static bool parseManifest(char *url)
 {
-    FILE *man = fopen("lorris.txt", "r");
+    char name[MAX_PATH];
+    Download::getfname(url, name);
+
+    FILE *man = fopen(name, "r");
     for(char line[100]; fgets(line, 1000, man);)
     {
         if(!strstr(line, mode))
             continue;
 
-        char *pch = strtok(line, " ");
-        pch = strtok(NULL, " ");
+        char *pch = strtok(line, " \n");
+        pch = strtok(NULL, " \n");
         for (int cnt = 1; pch != NULL; ++cnt)
         {
             switch(cnt)
@@ -147,7 +153,7 @@ static bool parseManifest(char *url)
                     if(atoi(pch) <= rev)
                     {
                         fclose(man);
-                        MessageBox(NULL, TEXT("Error!"), TEXT("You already have the newest version"), 0);
+                        MessageBox(NULL, TEXT("You already have the newest version"), TEXT("Error!"), 0);
                         PostQuitMessage(0);
                         return false;
                     }
@@ -155,7 +161,7 @@ static bool parseManifest(char *url)
                 }
                 case 2: strcpy(url, pch); break;
             }
-            pch = strtok(NULL, " ");
+            pch = strtok(NULL, " \n");
         }
     }
     fclose(man);
@@ -167,9 +173,9 @@ DWORD WINAPI WorkThread(LPVOID pParam)
     // Get lorris version if possible
     updateVerInfo();
 
-    // Download manifest
+    // Download files
     try {
-        Download::download("http://dl.dropbox.com/u/54372958/lorris.txt", true, NULL);
+        Download::download(MANIFEST_URL, true, NULL);
 
         char url[500];
         *url = 0;
@@ -177,10 +183,7 @@ DWORD WINAPI WorkThread(LPVOID pParam)
         if(!parseManifest(url))
             return 0;
         
-        char str2[400];
-        sprintf(str2, "%u %s", rev, url);
-        Ui::setText(str2);
-        //Download::download("https://github.com/downloads/Tasssadar/Lorris/Lorris_v411.zip", true, showprogress);
+        Download::download(url, true, showprogress);
     }
     catch(DLExc exc)
     {
