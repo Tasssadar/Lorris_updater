@@ -188,6 +188,10 @@
 				RelativePath=".\unzip.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\work.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -204,6 +208,10 @@
 			</File>
 			<File
 				RelativePath=".\unzip.h"
+				>
+			</File>
+			<File
+				RelativePath=".\work.h"
 				>
 			</File>
 		</Filter>

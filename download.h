@@ -16,8 +16,6 @@ const int MAX_ERRMSG_SIZE = 80;
 const int MAX_FILENAME_SIZE = 512;
 const int BUF_SIZE = 10240;             // 10 KB
 
-extern volatile bool runWorkThread;
-
 // Exception class for donwload errors;
 class DLExc
 {

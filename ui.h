@@ -3,8 +3,6 @@
 
 #include <windows.h>
 
-DWORD WINAPI WorkThread(LPVOID pParam);
-
 enum ButtonState
 {
     BTN_CANCEL,

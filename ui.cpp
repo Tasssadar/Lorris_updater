@@ -1,6 +1,7 @@
 #include <windows.h>
 #include <commctrl.h>
 
+#include "work.h"
 #include "ui.h"
 #include "download.h"
 
@@ -90,12 +91,11 @@ void Ui::processCmd(int cmd)
             // Fallthrough
         }
         case BTN_CANCEL:
-            runWorkThread = false;
+            Work::endThread();
             PostQuitMessage(0);
             break;
         case BTN_TRY_AGAIN:
-            runWorkThread = true;
-            CreateThread(NULL, 0, WorkThread, NULL, 0, 0);
+            Work::createThread();
             break;
     }
 }

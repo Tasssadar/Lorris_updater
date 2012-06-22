@@ -1,9 +1,11 @@
 // EXAMPLE FROM http://www.dreamincode.net/forums/topic/101532-download-file-from-url/
 
 // A file download subsystem
+#include <time.h>
+
 #include "download.h"
 #include "ui.h"
-#include <time.h>
+#include "work.h"
 
 /**
 Download a file
@@ -73,6 +75,9 @@ bool Download::download(char *url, bool reload, void (*update)(unsigned long, un
         {
             do
             {
+                if(!Work::runWork())
+                    throw DLExc("Canceled");
+
                 // Read a buffer of info
                 if(!InternetReadFile(hIurl, &buf, BUF_SIZE, &numrcved))
                     throw DLExc("Error occurred during download");
@@ -88,7 +93,7 @@ bool Download::download(char *url, bool reload, void (*update)(unsigned long, un
                 // Call update function, if specified
                 if(update && numrcved > 0)
                     update(contentlen + filelen, total + filelen);
-            } while (numrcved > 0 && runWorkThread);
+            } while (numrcved > 0);
         }
         else
         {
