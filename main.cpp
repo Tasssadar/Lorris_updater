@@ -131,11 +131,8 @@ static void updateVerInfo()
     }
 }
 
-static bool parseManifest(char *url)
+static bool parseManifest(char *name, char *url)
 {
-    char name[MAX_PATH];
-    Download::getfname(MANIFEST_URL, name);
-
     FILE *man = fopen(name, "r");
     if(!man)
         return true;
@@ -197,11 +194,8 @@ static bool IsLorrisRunning()
     return false;
 }
 
-static void unzipFile(char *url)
+static void unzipFile(char *name)
 {
-    char name[MAX_PATH];
-    Download::getfname(url, name);
-
     TCHAR dir[FILENAME_MAX];
     ::GetCurrentDirectory(FILENAME_MAX, dir);
 
@@ -251,21 +245,23 @@ DWORD WINAPI WorkThread(LPVOID pParam)
 
     // Download files
     try {
-        Download::download(MANIFEST_URL, true, NULL);
+        char manName[MAX_PATH];
+        Download::download(MANIFEST_URL, true, NULL, manName);
 
         char url[500];
         url[0] = 0;
 
-        if(!parseManifest(url))
+        if(!parseManifest(manName, url))
             return 0;
 
         if(*url == 0)
             throw DLExc("Corrupted manifest file");
         
-        Download::download(url, true, showprogress);
+        char zipName[MAX_PATH];
+        Download::download(url, true, showprogress, zipName);
 
         Ui::setText("Extracting....");
-        unzipFile(url);
+        unzipFile(zipName);
     }
     catch(DLExc exc)
     {

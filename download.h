@@ -44,10 +44,10 @@ class Download
 private:
     static bool ishttp(char *url);
     static bool httpverOK(HINTERNET hIurl);
-    static unsigned long openfile(char *url, bool reload, ofstream &fout);
+    static unsigned long openfile(char *url, bool reload, ofstream &fout, char *name);
 public:
     static bool getfname(char *url, char *fname);
-    static bool download(char *url, bool reload=false, void (*update)(unsigned long, unsigned long)=NULL);
+    static bool download(char *url, bool reload, void (*update)(unsigned long, unsigned long), char *name);
 };
 
 #endif

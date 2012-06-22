@@ -3,6 +3,7 @@
 // A file download subsystem
 #include "download.h"
 #include "ui.h"
+#include <time.h>
 
 /**
 Download a file
@@ -13,7 +14,7 @@ To specify an update function that is called after each buffer is read, pass a
 pointer to that function as the third parameter. If no update function is
 desired, then let the third parameter default to null.
 */
-bool Download::download(char *url, bool reload, void (*update)(unsigned long, unsigned long))
+bool Download::download(char *url, bool reload, void (*update)(unsigned long, unsigned long), char *name)
 {
     ofstream fout;              // output stream
     unsigned char buf[BUF_SIZE];// input buffer
@@ -36,7 +37,7 @@ bool Download::download(char *url, bool reload, void (*update)(unsigned long, un
         preexisting file will be truncated. The length of any preexisting file
         (after possible truncation) is returned.
         */
-        filelen = openfile(url, reload, fout);
+        filelen = openfile(url, reload, fout, name);
 
         // See if internet connection is available
         if(InternetAttemptConnect(0) != ERROR_SUCCESS)
@@ -180,20 +181,32 @@ bool Download::getfname(char *url, char *fname)
 Open the output file, initialize the output stream, and return the file's
 length. If reload is true, first truncate any preexisting file
 */
-unsigned long Download::openfile(char *url, bool reload, ofstream &fout)
+unsigned long Download::openfile(char *url, bool reload, ofstream &fout, char *name)
 {
     char fname[MAX_FILENAME_SIZE];
 
     if(!getfname(url, fname))
         throw DLExc("File name error");
 
-    if(!reload)
-        fout.open(fname, ios::binary | ios::out | ios::app | ios::ate);
-    else
-        fout.open(fname, ios::binary | ios::out | ios::trunc);
+    for(int i = 0; i < 2 && !fout; ++i)
+    {
+         if(!reload)
+            fout.open(fname, ios::binary | ios::out | ios::app | ios::ate);
+        else
+            fout.open(fname, ios::binary | ios::out | ios::trunc);
+
+         if(!fout)
+         {
+            char buff[MAX_FILENAME_SIZE];
+            strcpy(buff, fname);
+            sprintf(fname, "%s-%u", buff, time(0));
+         }
+    }
 
     if(!fout)
-        throw DLExc(fname);
+        throw DLExc("Could not open TEMP file!");
+
+    strcpy(name, fname);
 
     // get current file length
     return fout.tellp();
