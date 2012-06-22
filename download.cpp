@@ -168,7 +168,7 @@ bool Download::getfname(char *url, char *fname)
         for(int i = 0; !i || buff[i-1] != 0; ++i)
             str[i] = buff[i];
 
-        sprintf(fname, "%s\%s", str, p);
+        sprintf(fname, "%s\\%s", str, p);
         return true;
     }
     else
@@ -188,18 +188,19 @@ unsigned long Download::openfile(char *url, bool reload, ofstream &fout, char *n
     if(!getfname(url, fname))
         throw DLExc("File name error");
 
-    for(int i = 0; i < 2 && !fout; ++i)
+    for(int i = 0; i < 5 && (!fout.is_open() || !fout); ++i)
     {
          if(!reload)
             fout.open(fname, ios::binary | ios::out | ios::app | ios::ate);
         else
             fout.open(fname, ios::binary | ios::out | ios::trunc);
 
-         if(!fout)
+         if(!fout.is_open() || !fout)
          {
             char buff[MAX_FILENAME_SIZE];
             strcpy(buff, fname);
-            sprintf(fname, "%s-%u", buff, time(0));
+            sprintf(fname, "%s-%u", buff, time(0)-i);
+            fout.clear();
          }
     }
 
