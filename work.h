@@ -3,12 +3,15 @@
 
 #include <windows.h>
 
+#define WORK_COMPLETE (WM_APP+1)
+
 class Work
 {
 public:
-    static void createThread();
+    static void createThread(HWND window);
     static void endThread();
     static bool runWork() { return m_run; }
+    static bool runLorris();
 
 private:
     static void showprogress(unsigned long total, unsigned long part);
@@ -22,5 +25,6 @@ private:
     static volatile bool m_run;
     static char m_mode[20];
     static int m_rev;
+    static HWND m_window;
 };
 #endif

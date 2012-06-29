@@ -6,8 +6,7 @@
 enum ButtonState
 {
     BTN_CANCEL,
-    BTN_TRY_AGAIN,
-    BTN_RUN_LORRIS
+    BTN_TRY_AGAIN
 };
 
 class Ui

@@ -10,13 +10,17 @@ HANDLE Work::m_thread = 0;
 volatile bool Work::m_run = true;
 char Work::m_mode[20];
 int Work::m_rev = -1;
+HWND Work::m_window = 0;
 
-void Work::createThread()
+void Work::createThread(HWND window)
 {
     strcpy(m_mode, "release");
     m_rev = -1;
     m_run = true;
 
+    if(window)
+        m_window = window;
+  
     m_thread = CreateThread(NULL, 0, run, NULL, 0, 0);
 }
 
@@ -110,6 +114,7 @@ bool Work::parseManifest(char *name, char *url)
                         fclose(man);
                         Ui::setText("You already have the newest version");
                         MessageBox(NULL, TEXT("You already have the newest version"), TEXT("Error!"), 0);
+                        ::PostMessage(m_window, WORK_COMPLETE, 0, 0);
                         return false;
                     }
                     break;
@@ -179,6 +184,18 @@ void Work::unzipFile(char *name)
     Ui::setProgress(100);
 }
 
+bool Work::runLorris()
+{
+    TCHAR path[FILENAME_MAX];
+    ::GetCurrentDirectory(FILENAME_MAX, path);
+    
+    std::wstring str_path(path);
+    str_path += TEXT("\\Lorris.exe");
+
+    int res = (int)ShellExecute(GetDesktopWindow(), TEXT("open"), str_path.c_str(), NULL, path, SW_SHOWNORMAL);
+    return res > 32;
+}
+
 DWORD WINAPI Work::run(LPVOID pParam)
 {
     Ui::setBtnState(BTN_CANCEL);
@@ -229,9 +246,10 @@ DWORD WINAPI Work::run(LPVOID pParam)
         Ui::setBtnState(BTN_TRY_AGAIN);
         goto exit;
     }
-    Ui::setText("Complete!");
-    Ui::setBtnState(BTN_RUN_LORRIS);
 
+    Ui::setText("Complete!");
+    ::PostMessage(m_window, WORK_COMPLETE, 0, 0);
+    
 exit:
     if(*manName) remove(manName);
     if(*zipName) remove(zipName);

@@ -79,23 +79,12 @@ void Ui::processCmd(int cmd)
 
     switch(m_btn_state)
     {
-        case BTN_RUN_LORRIS:
-        {
-            TCHAR path[FILENAME_MAX];
-            ::GetCurrentDirectory(FILENAME_MAX, path);
-
-            std::wstring str_path(path);
-            str_path += TEXT("\\Lorris.exe");
-
-            ::ShellExecute(GetDesktopWindow(), TEXT("open"), str_path.c_str(), NULL, path, SW_SHOWNORMAL);
-            // Fallthrough
-        }
         case BTN_CANCEL:
             Work::endThread();
             PostQuitMessage(0);
             break;
         case BTN_TRY_AGAIN:
-            Work::createThread();
+            Work::createThread(0);
             break;
     }
 }
@@ -110,9 +99,6 @@ void Ui::setBtnState(ButtonState state)
             break;
         case BTN_TRY_AGAIN:
             SetWindowText(m_btn, TEXT("Try again"));
-            break;
-        case BTN_RUN_LORRIS:
-            SetWindowText(m_btn, TEXT("Run Lorris"));
             break;
     }
 }

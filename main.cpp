@@ -46,7 +46,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     ShowWindow(hWnd, iCmdShow);
     UpdateWindow(hWnd);
 
-    Work::createThread();
+    Work::createThread(hWnd);
 
     while(GetMessage(&msg, NULL, 0, 0))
     {
@@ -63,6 +63,13 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_CREATE:
             Ui::Init(hWnd);
             return 0;
+        case WORK_COMPLETE:
+            if(!Work::runLorris())
+            {
+                Ui::setText("Failed to launch Lorris!");
+                return 0;
+            }
+            // fallthrough
         case WM_DESTROY:
             Work::endThread();
             PostQuitMessage(0);
