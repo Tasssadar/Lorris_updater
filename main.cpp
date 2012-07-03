@@ -6,6 +6,8 @@
 #include "ui.h"
 #include "work.h"
 
+#define VERSION "1"
+
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
 int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
@@ -13,7 +15,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
 {
     Ui::set(hInstance);
 
-    TCHAR szAppName[] = TEXT("Lorris updater");
+    TCHAR szAppName[] = TEXT("Lorris updater - ") TEXT(VERSION);
     HWND hWnd;
     MSG msg;
     WNDCLASSEX wc;
