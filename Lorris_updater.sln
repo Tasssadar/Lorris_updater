@@ -1,7 +1,7 @@
 ﻿
-Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual C++ Express 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lorris_updater", "Lorris_updater.vcproj", "{72502FD8-CB16-4ACC-AFF7-3F44F9AB37F5}"
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Lorris_updater", "Lorris_updater.vcxproj", "{72502FD8-CB16-4ACC-AFF7-3F44F9AB37F5}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

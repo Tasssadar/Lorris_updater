@@ -3,8 +3,12 @@
 #include "ui.h"
 #include "download.h"
 #include "unzip.h"
+#include "changelog.h"
 
 #define MANIFEST_URL "http://dl.dropbox.com/u/54372958/lorris.txt"
+
+static const char *modes[] = { "release", "dev" };
+static const char *changelogs[] = { "changelog1", "changelog2" };
 
 HANDLE Work::m_thread = 0;
 volatile bool Work::m_run = true;
@@ -91,14 +95,33 @@ void Work::updateVerInfo()
     }
 }
 
+const char *Work::matchChangelog()
+{
+    for(int i = 0; i < sizeof(modes)/sizeof(modes[0]); ++i)
+    {
+        if(strcmp(modes[i], m_mode) == 0)
+            return changelogs[i];
+    }
+    return NULL;
+}
+
 bool Work::parseManifest(char *name, char *url)
 {
     FILE *man = fopen(name, "r");
     if(!man)
         return true;
 
-    for(char line[100]; fgets(line, 1000, man);)
+    const char *log = matchChangelog();
+    bool hasNewer = false;
+
+    for(char line[1000]; fgets(line, 1000, man);)
     {
+        if(log && strstr(line, log))
+        {
+            Changelog::init(line);
+            continue;
+        }
+
         if(!strstr(line, m_mode))
             continue;
 
@@ -108,23 +131,25 @@ bool Work::parseManifest(char *name, char *url)
             switch(cnt)
             {
                 case 1:
-                {
                     if(atoi(pch) <= m_rev)
-                    {
-                        fclose(man);
-                        Ui::setText("You already have the newest version");
-                        MessageBox(NULL, TEXT("You already have the newest version"), TEXT("Error!"), 0);
-                        ::PostMessage(m_window, WORK_COMPLETE, 0, 0);
-                        return false;
-                    }
+                        hasNewer = true;
                     break;
-                }
-                case 2: strcpy(url, pch); break;
+                case 2:
+                    strcpy(url, pch);
+                    break;
             }
             pch = strtok(NULL, " \n");
         }
     }
     fclose(man);
+
+    if(hasNewer)
+    {
+        Ui::setText("You already have the newest version");
+        MessageBox(NULL, TEXT("You already have the newest version"), TEXT("Error!"), 0);
+        ::PostMessage(m_window, WORK_COMPLETE, 0, 0);
+        return false;
+    }
     return true;
 }
 

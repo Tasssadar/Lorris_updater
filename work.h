@@ -20,6 +20,7 @@ private:
     static bool isLorrisRunning();
     static void unzipFile(char *name);
     static DWORD WINAPI run(LPVOID pParam);
+    static const char *matchChangelog();
 
     static HANDLE m_thread;
     static volatile bool m_run;

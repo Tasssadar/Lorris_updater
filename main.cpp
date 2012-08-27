@@ -9,7 +9,7 @@
 #include "ui.h"
 #include "work.h"
 
-#define VERSION "2"
+#define VERSION "3"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -43,8 +43,8 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
                         (WS_CAPTION | WS_SYSMENU | WS_MINIMIZEBOX),
                         CW_USEDEFAULT,
                         CW_USEDEFAULT,
+                        700,
                         400,
-                        100,
                         NULL,
                         NULL,
                         hInstance,NULL);
@@ -69,12 +69,8 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
             Ui::Init(hWnd);
             return 0;
         case WORK_COMPLETE:
-            if(!Work::runLorris())
-            {
-                Ui::setText("Failed to launch Lorris!");
-                return 0;
-            }
-            // fallthrough
+            Ui::setBtnState(BTN_RUN_LORRIS);
+            return 0;
         case WM_DESTROY:
             Work::endThread();
             PostQuitMessage(0);
@@ -82,6 +78,16 @@ LRESULT CALLBACK WndProc(HWND hWnd, UINT message, WPARAM wParam, LPARAM lParam)
         case WM_COMMAND:
             Ui::processCmd(LOWORD(wParam));
             return 0;
+        case WM_CTLCOLORSTATIC:
+        {
+            HDC hEdit = (HDC)wParam;
+            if(Ui::isEdit(hEdit))
+            {
+                SetBkColor(hEdit, RGB(255, 255, 255));
+                return (INT_PTR)GetStockObject( WHITE_BRUSH );
+            }
+            break;
+        }
     }
     return DefWindowProc(hWnd, message, wParam, lParam);
 }

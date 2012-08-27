@@ -8,6 +8,7 @@
 HWND Ui::m_progress = 0;
 HWND Ui::m_label = 0;
 HWND Ui::m_btn = 0;
+HWND Ui::m_edit_box = 0;
 HINSTANCE Ui::m_inst = 0;
 ButtonState Ui::m_btn_state = BTN_CANCEL;
 
@@ -24,40 +25,36 @@ BSTR Ui::toWString(const char* text)
 void Ui::Init(HWND hWnd)
 {
     // Background
-    BSTR uni = toWString("ST_U");
-    BSTR stat = toWString("static");
-    HWND bg = CreateWindowEx(0, stat, uni,
+    HWND bg = CreateWindowEx(0, TEXT("static"), TEXT("ST_U"),
                    (WS_CHILD | WS_VISIBLE | WS_TABSTOP),
-                   0, 0, 400, 100, hWnd, NULL, m_inst, NULL);
+                   0, 0, 700, 400, hWnd, NULL, m_inst, NULL);
     SetWindowText(bg, 0);
 
     // Progress
     m_progress = CreateWindowEx(0, PROGRESS_CLASS, NULL,
                                 WS_CHILD | WS_VISIBLE,
-                                20, 20, 260, 20,
+                                15, 320, 560, 20,
                                 hWnd, NULL, m_inst, NULL);
     SendMessage(m_progress, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
 
     // Label
-    m_label = CreateWindowEx(0, stat, uni,
+    m_label = CreateWindowEx(0, TEXT("static"), TEXT("ST_U"),
                            WS_CHILD | WS_VISIBLE | WS_TABSTOP,
-                           20, 45, 260, 40,
+                           15, 345, 260, 40,
                            hWnd, NULL,
                            m_inst, NULL);
     setText("Initializing...");
 
     // Button
-    BSTR canc = toWString("Cancel");
-    BSTR btn = toWString("BUTTON");
-    m_btn = CreateWindowEx(NULL, btn, canc, 
+    m_btn = CreateWindowEx(NULL, TEXT("BUTTON"), TEXT("Cancel"), 
                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
-                           290, 20, 95, 20, hWnd, (HMENU)IDB_CANCEL, NULL, NULL);
+                           585, 320, 95, 20, hWnd, (HMENU)IDB_CANCEL, NULL, NULL);
 
-    ::SysFreeString(canc);
-    ::SysFreeString(btn);
-
-    ::SysFreeString(uni);
-    ::SysFreeString(stat);
+    // EditBox
+    m_edit_box = CreateWindowEx(NULL, TEXT("EDIT"), TEXT(""),
+                                WS_CHILD|WS_VISIBLE|ES_MULTILINE|WS_VSCROLL|ES_READONLY | WS_BORDER,
+                                15, 15, 665, 295, hWnd, NULL, m_inst, NULL);
+    setChangelog("Downloading changelog...");
 }
 
 void Ui::setProgress(int val)
@@ -79,6 +76,13 @@ void Ui::processCmd(int cmd)
 
     switch(m_btn_state)
     {
+        case BTN_RUN_LORRIS:
+            if(!Work::runLorris())
+            {
+                Ui::setText("Failed to launch Lorris!");
+                return;
+            }
+            // fallthrough
         case BTN_CANCEL:
             Work::endThread();
             PostQuitMessage(0);
@@ -100,5 +104,15 @@ void Ui::setBtnState(ButtonState state)
         case BTN_TRY_AGAIN:
             SetWindowText(m_btn, TEXT("Try again"));
             break;
+        case BTN_RUN_LORRIS:
+            SetWindowText(m_btn, TEXT("Run Lorris"));
+            break;
     }
+}
+
+void Ui::setChangelog(const char* text)
+{
+    BSTR unicodestr = toWString(text);
+    SetWindowText(m_edit_box, unicodestr);
+    ::SysFreeString(unicodestr);
 }
