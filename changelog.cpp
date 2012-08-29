@@ -55,8 +55,12 @@ DWORD WINAPI Changelog::run(LPVOID pParam)
     if(file)
     {
         bool skip = true;
+        int last = 0;
         for(char line[1000]; fgets(line, 1000, file);)
         {
+            int cur = ftell(file) - last - 2;
+            last = ftell(file);
+
             if(skip)
             {
                 if(strstr(line, "Version") == line)
@@ -64,6 +68,9 @@ DWORD WINAPI Changelog::run(LPVOID pParam)
                 else
                     continue;
             }
+
+            line[cur] = 0;
+
             result += line;
             result += "\r\n";
         }
