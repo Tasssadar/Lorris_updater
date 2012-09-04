@@ -9,7 +9,7 @@
 #include "ui.h"
 #include "work.h"
 
-#define VERSION "4"
+#define VERSION "5"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 

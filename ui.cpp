@@ -54,6 +54,15 @@ void Ui::Init(HWND hWnd)
     m_edit_box = CreateWindowEx(NULL, TEXT("EDIT"), TEXT(""),
                                 WS_CHILD|WS_VISIBLE|ES_MULTILINE|WS_VSCROLL|ES_READONLY | WS_BORDER,
                                 15, 15, 665, 295, hWnd, NULL, m_inst, NULL);
+    
+    HDC hdc = GetDC(NULL);
+    long lfHeight = -MulDiv(10, GetDeviceCaps(hdc, LOGPIXELSY), 72);
+    ReleaseDC(NULL, hdc);
+
+    HFONT hf = CreateFontA(lfHeight, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New");
+    if(hf)
+        SendMessage(m_edit_box, WM_SETFONT, (WPARAM)hf, TRUE);
+
     setChangelog("Downloading changelog...");
 }
 
