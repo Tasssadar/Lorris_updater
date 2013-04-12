@@ -5,7 +5,7 @@
 #include "unzip.h"
 #include "changelog.h"
 
-#define MANIFEST_URL "http://dl.dropbox.com/u/54372958/lorris.txt"
+#define MANIFEST_URL "http://technika.junior.cz/trac/raw-attachment/wiki/lorris/updater_manifest.txt"
 
 static const char *modes[] = { "release", "dev" };
 static const char *changelogs[] = { "changelog1", "changelog2" };
