@@ -57,7 +57,8 @@ bool Download::download(char *url, bool reload, void (*update)(unsigned long, un
         //hIurl = InternetOpenUrl(hInet, url, header, -1, INTERNET_FLAG_NO_CACHE_WRITE, 0);
         BSTR header_w = Ui::toWString(header);
         BSTR url_w = Ui::toWString(url);
-        hIurl = InternetOpenUrl(hInet, url_w, header_w, strlen(header), INTERNET_FLAG_NO_CACHE_WRITE, 0);
+        DWORD flags = (INTERNET_FLAG_NO_CACHE_WRITE | INTERNET_FLAG_IGNORE_CERT_CN_INVALID | INTERNET_FLAG_IGNORE_CERT_DATE_INVALID);
+        hIurl = InternetOpenUrl(hInet, url_w, header_w, strlen(header), flags, 0);
         if(hIurl == NULL)
             throw DLExc("Can't open url");
 
