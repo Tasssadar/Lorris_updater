@@ -1,7 +1,7 @@
 #ifndef CHANGELOG_H
 #define CHANGELOG_H
 
-#include <Windows.h>
+#include <windows.h>
 
 class Changelog
 {

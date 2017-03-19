@@ -16,7 +16,7 @@ To specify an update function that is called after each buffer is read, pass a
 pointer to that function as the third parameter. If no update function is
 desired, then let the third parameter default to null.
 */
-bool Download::download(char *url, bool reload, void (*update)(unsigned long, unsigned long), char *name)
+bool Download::download(const char *url, bool reload, void (*update)(unsigned long, unsigned long), char *name)
 {
     ofstream fout;              // output stream
     unsigned char buf[BUF_SIZE];// input buffer
@@ -158,7 +158,7 @@ bool Download::httpverOK(HINTERNET hIurl)
 
 // Extract the filename from the URL.
 // Return false if the filename cannot be found
-bool Download::getfname(char *url, char *fname)
+bool Download::getfname(const char *url, char *fname)
 {
     // Find last slash /
     char *p = strrchr(url, '/');
@@ -187,7 +187,7 @@ bool Download::getfname(char *url, char *fname)
 Open the output file, initialize the output stream, and return the file's
 length. If reload is true, first truncate any preexisting file
 */
-unsigned long Download::openfile(char *url, bool reload, ofstream &fout, char *name)
+unsigned long Download::openfile(const char *url, bool reload, ofstream &fout, char *name)
 {
     char fname[MAX_FILENAME_SIZE];
 
@@ -220,7 +220,7 @@ unsigned long Download::openfile(char *url, bool reload, ofstream &fout, char *n
 }
 
 // Confirm that the URL specifies HTTP
-bool Download::ishttp(char *url)
+bool Download::ishttp(const char *url)
 {
     char str[5] = "";
 

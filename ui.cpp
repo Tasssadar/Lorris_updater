@@ -46,12 +46,12 @@ void Ui::Init(HWND hWnd)
     setText("Initializing...");
 
     // Button
-    m_btn = CreateWindowEx(NULL, TEXT("BUTTON"), TEXT("Cancel"), 
+    m_btn = CreateWindowEx(0, TEXT("BUTTON"), TEXT("Cancel"), 
                            WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
                            585, 320, 95, 20, hWnd, (HMENU)IDB_CANCEL, NULL, NULL);
 
     // EditBox
-    m_edit_box = CreateWindowEx(NULL, TEXT("EDIT"), TEXT(""),
+    m_edit_box = CreateWindowEx(0, TEXT("EDIT"), TEXT(""),
                                 WS_CHILD|WS_VISIBLE|ES_MULTILINE|WS_VSCROLL|ES_READONLY | WS_BORDER,
                                 15, 15, 665, 295, hWnd, NULL, m_inst, NULL);
     

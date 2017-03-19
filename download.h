@@ -22,7 +22,7 @@ class DLExc
 private:
     char err[MAX_ERRMSG_SIZE];
 public:
-    DLExc(char *exc)
+    DLExc(const char *exc)
     {
         if(strlen(exc) < MAX_ERRMSG_SIZE)
             strcpy(err, exc);
@@ -40,12 +40,12 @@ public:
 class Download
 {
 private:
-    static bool ishttp(char *url);
+    static bool ishttp(const char *url);
     static bool httpverOK(HINTERNET hIurl);
-    static unsigned long openfile(char *url, bool reload, ofstream &fout, char *name);
+    static unsigned long openfile(const char *url, bool reload, ofstream &fout, char *name);
 public:
-    static bool getfname(char *url, char *fname);
-    static bool download(char *url, bool reload, void (*update)(unsigned long, unsigned long), char *name);
+    static bool getfname(const char *url, char *fname);
+    static bool download(const char *url, bool reload, void (*update)(unsigned long, unsigned long), char *name);
 };
 
 #endif

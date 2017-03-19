@@ -1,4 +1,3 @@
-
 #include "work.h"
 #include "ui.h"
 #include "download.h"
