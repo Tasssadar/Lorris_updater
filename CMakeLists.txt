@@ -15,10 +15,21 @@ add_executable(LorrisUpdater
     download.cpp
     changelog.cpp
     main.cpp
-    signing.cpp
     ui.cpp
     unzip.cpp
-    work.cpp)
+    work.cpp
+
+    easy-ecc/ecc.c
+    signtool/sha256.c
+    signtool/util.c
+    signtool/verify.c)
 
 set_target_properties(LorrisUpdater PROPERTIES OUTPUT_NAME updater)
 target_link_libraries(LorrisUpdater wsock32 ws2_32 wininet)
+
+add_executable(signtool
+    easy-ecc/ecc.c
+    signtool/sha256.c
+    signtool/signtool.c
+    signtool/util.c
+    signtool/verify.c)

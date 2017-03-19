@@ -2,6 +2,7 @@
 #define WORK_H
 
 #include <windows.h>
+#include <string>
 
 #define WORK_COMPLETE (WM_APP+1)
 
@@ -16,11 +17,12 @@ public:
 private:
     static void showprogress(unsigned long total, unsigned long part);
     static void updateVerInfo();
-    static bool parseManifest(char *name, char *url);
+    static bool parseManifest(char *name, std::string &url, std::string& sha256);
     static bool isLorrisRunning();
     static void unzipFile(char *name);
     static DWORD WINAPI run(LPVOID pParam);
     static const char *matchChangelog();
+    static bool verifySignature(std::string origurl, const char *fn, const char *expectedSha256Str);
 
     static HANDLE m_thread;
     static volatile bool m_run;

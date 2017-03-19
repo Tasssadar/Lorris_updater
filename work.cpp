@@ -4,7 +4,10 @@
 #include "unzip.h"
 #include "changelog.h"
 
-#define MANIFEST_URL "http://technika.tasemnice.eu/lorris/updater_manifest.txt"
+#include "signtool/verify.h"
+
+#define MANIFEST_URL "http://tasemnice.eu/lorris/updater_manifest.txt"
+#define SIGNATURE_SUFFIX ".sig"
 
 static const char *modes[] = { "release", "dev" };
 static const char *changelogs[] = { "changelog1", "changelog2" };
@@ -17,7 +20,7 @@ HWND Work::m_window = 0;
 
 void Work::createThread(HWND window)
 {
-    strcpy(m_mode, "release");
+    strcpy(m_mode, "dev");
     m_rev = -1;
     m_run = true;
 
@@ -52,7 +55,7 @@ void Work::showprogress(unsigned long total, unsigned long part)
     Ui::setProgress(val);
 
     static char str[64];
-    sprintf(str, "Downloading (%lu kB of %lu kB)", part/1024, total/1024);
+    snprintf(str, sizeof(str), "Downloading (%lu kB of %lu kB)", part/1024, total/1024);
     Ui::setText(str);
 }
 
@@ -63,7 +66,7 @@ void Work::updateVerInfo()
         char *pch = strtok(__argv[1], "-");
         pch = strtok(NULL, "-");
         if(pch)
-            strcpy(m_mode, pch);
+            snprintf(m_mode, sizeof(m_mode), "%s", pch);
 
         m_rev = atoi(__argv[2]);
     }
@@ -73,9 +76,8 @@ void Work::updateVerInfo()
         if(!file)
             return;
 
-        char str[200];
-        *str = 0;
-        fgets(str, 200, file);   
+        char str[256] = { 0 };
+        fgets(str, sizeof(str), file);
         fclose(file);
 
         if(*str != 0)
@@ -85,7 +87,7 @@ void Work::updateVerInfo()
             {
                 switch(cnt)
                 {
-                    case 3: strcpy(m_mode, pch); break;
+                    case 3: snprintf(m_mode, sizeof(m_mode), "%s", pch); break;
                     case 6: m_rev = atoi(pch); break;
                 }
                 pch = strtok(NULL, " ,-");
@@ -104,7 +106,7 @@ const char *Work::matchChangelog()
     return NULL;
 }
 
-bool Work::parseManifest(char *name, char *url)
+bool Work::parseManifest(char *name, std::string &url, std::string &sha256)
 {
     FILE *man = fopen(name, "r");
     if(!man)
@@ -113,7 +115,8 @@ bool Work::parseManifest(char *name, char *url)
     const char *log = matchChangelog();
     bool hasNewer = false;
 
-    for(char line[1000]; fgets(line, 1000, man);)
+    char line[1024];
+    while(fgets(line, sizeof(line), man))
     {
         if(log && strstr(line, log))
         {
@@ -124,7 +127,7 @@ bool Work::parseManifest(char *name, char *url)
         if(!strstr(line, m_mode))
             continue;
 
-        char *pch = strtok(line, " \n");
+        char *pch = strtok(line, " ");
         for (int cnt = 0; pch != NULL; ++cnt)
         {
             switch(cnt)
@@ -134,10 +137,13 @@ bool Work::parseManifest(char *name, char *url)
                         hasNewer = true;
                     break;
                 case 2:
-                    strcpy(url, pch);
+                    url = pch;
+                    break;
+                case 3:
+                    sha256 = pch;
                     break;
             }
-            pch = strtok(NULL, " \n");
+            pch = strtok(NULL, " ");
         }
     }
     fclose(man);
@@ -239,33 +245,37 @@ DWORD WINAPI Work::run(LPVOID pParam)
     // Get lorris version if possible
     updateVerInfo();
 
+    std::string url, sha256;
+
     char manName[MAX_PATH];
     char zipName[MAX_PATH];
     *manName = *zipName = 0;
 
     // Download files
     try {
-        
         Download::download(MANIFEST_URL, true, NULL, manName);
 
-        char url[500];
-        url[0] = 0;
-
-        if(!parseManifest(manName, url))
+        if(!verifySignature(MANIFEST_URL, manName, NULL))
             goto exit;
 
-        if(*url == 0)
+        if(!parseManifest(manName, url, sha256))
+            goto exit;
+
+        if(url.empty())
             throw DLExc("Corrupted manifest file");
 
-        Download::download(url, true, showprogress, zipName);
+        Download::download(url.c_str(), true, showprogress, zipName);
+
+        if(!verifySignature(url, zipName, sha256.c_str()))
+            goto exit;
 
         Ui::setText("Extracting....");
         unzipFile(zipName);
     }
     catch(DLExc exc)
     {
-        char txt[100];
-        sprintf(txt, "ERROR: %s", exc.geterr());
+        char txt[256];
+        snprintf(txt, sizeof(txt), "ERROR: %s", exc.geterr());
         Ui::setText(txt);
         Ui::setBtnState(BTN_TRY_AGAIN);
         goto exit;
@@ -279,4 +289,73 @@ exit:
     if(*zipName) remove(zipName);
 
     return 0;
+}
+
+static int hex2int(char c) {
+    if(c >= '0' && c <= '9')
+        return c - '0';
+    else if(c >= 'a' && c <= 'f')
+        return c - 'a' + 10;
+    else if(c >= 'A' && c <= 'F')
+        return c - 'A' + 10;
+    return -1;
+}
+
+bool Work::verifySignature(std::string origurl, const char *fn, const char *expectedSha256Str) {
+    uint8_t sha256[32];
+    if(!signtool_sha256sum(fn, sha256))
+        throw DLExc("Failed to calculate sha256 hash");
+
+    if(expectedSha256Str) {
+        uint8_t expectedSha256[sizeof(sha256)] = { 0 };
+        size_t len = strlen(expectedSha256Str);
+        int c;
+        for(size_t i = 0; i < sizeof(expectedSha256)*2 && i < len;) {
+            if((c = hex2int(expectedSha256Str[i])) == -1)
+                break;
+            expectedSha256[i++/2] = c << 4;
+            if((c = hex2int(expectedSha256Str[i])) == -1)
+                break;
+            expectedSha256[i++/2] |= c;
+        }
+
+        if(memcmp(expectedSha256, sha256, sizeof(sha256)) != 0) {
+            int res = MessageBox(NULL, TEXT("The sha256 sum of downloaded file does not match. "
+                "The file was either corrupted, tampered with or not generated properly. "
+                "Ignore and continue?"), TEXT("Error!"), MB_YESNO | MB_DEFBUTTON2);
+            if(res != IDYES) {
+                Ui::setText("ERROR: SHA256 hashes do not match.");
+                ::PostMessage(m_window, WORK_COMPLETE, 0, 0);
+                return false;
+            }
+        }
+    }
+
+    origurl += SIGNATURE_SUFFIX;
+
+    char sigfile[MAX_PATH] = { 0 };
+    Download::download(origurl.c_str(), true, NULL, sigfile);
+
+    static const uint8_t pubkey[ECC_BYTES+1] = {
+        0x03,0x20,0x51,0xc3,0xa9,0x65,0xaa,0xe8,0x74,0x57,0x82,0xf6,0xff,0x05,0xd1,0x63,0x55,
+        0x70,0xfe,0x8d,0xac,0xd9,0x81,0x9f,0x3d,0x1c,0xdd,0xdf,0x31,0x26,0xbb,0x02,0x7f,
+    };
+
+    int verify_res = signtool_verify(sha256, sigfile, pubkey);
+
+    if(*sigfile)
+        remove(sigfile);
+
+    if(!verify_res) {
+        int res = MessageBox(NULL, TEXT("The file signature does not match. "
+            "The file was either corrupted, tampered with or not generated properly. "
+            "Ignore and continue? This is unsafe!"), TEXT("Error!"), MB_YESNO | MB_DEFBUTTON2);
+        if(res != IDYES) {
+            Ui::setText("ERROR: The signature is invalid.");
+            ::PostMessage(m_window, WORK_COMPLETE, 0, 0);
+            return false;
+        }
+    }
+
+    return true;
 }

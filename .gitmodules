@@ -1,0 +1,3 @@
+[submodule "easy-ecc"]
+	path = easy-ecc
+	url = https://github.com/esxgx/easy-ecc.git
