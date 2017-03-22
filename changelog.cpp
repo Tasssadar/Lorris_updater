@@ -30,6 +30,7 @@ void Changelog::init(char *line)
         return;
     }
 
+    Ui::setChangelog("Downloading changelog...");
     m_thread = CreateThread(NULL, 0, run, NULL, 0, 0);
 }
 

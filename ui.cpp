@@ -62,8 +62,6 @@ void Ui::Init(HWND hWnd)
     HFONT hf = CreateFontA(lfHeight, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, "Courier New");
     if(hf)
         SendMessage(m_edit_box, WM_SETFONT, (WPARAM)hf, TRUE);
-
-    setChangelog("Downloading changelog...");
 }
 
 void Ui::setProgress(int val)

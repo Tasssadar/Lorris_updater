@@ -9,7 +9,7 @@
 #include "ui.h"
 #include "work.h"
 
-#define VERSION "10"
+#define VERSION "11"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
@@ -22,6 +22,13 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance,
     HWND hWnd;
     MSG msg;
     WNDCLASSEX wc;
+
+    INITCOMMONCONTROLSEX icc;
+
+    // Initialise common controls.
+    icc.dwSize = sizeof(icc);
+    icc.dwICC = ICC_WIN95_CLASSES;
+    InitCommonControlsEx(&icc);
     
     wc.cbSize = sizeof(wc);
     wc.style = CS_HREDRAW | CS_VREDRAW;

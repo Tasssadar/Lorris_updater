@@ -69,31 +69,90 @@ void Work::updateVerInfo()
             snprintf(m_mode, sizeof(m_mode), "%s", pch);
 
         m_rev = atoi(__argv[2]);
+        return;
     }
-    else
+
+
+    SECURITY_ATTRIBUTES saAttr;
+    saAttr.nLength = sizeof(SECURITY_ATTRIBUTES);
+    saAttr.bInheritHandle = TRUE;
+    saAttr.lpSecurityDescriptor = NULL;
+
+    HANDLE stdoutRd = NULL;
+    HANDLE stdoutWr = NULL;
+    HANDLE stdinRd = NULL;
+    HANDLE stdinWr = NULL;
+
+    TCHAR cmdline[] = TEXT("Lorris.exe -v");
+    PROCESS_INFORMATION piProcInfo; 
+    STARTUPINFO siStartInfo;
+    BOOL bSuccess = FALSE;
+
+    char str[256] = { 0 };
+    DWORD dwRead;
+
+    if (!CreatePipe(&stdoutRd, &stdoutWr, &saAttr, 0)) {
+        return;
+    }
+
+    if(!SetHandleInformation(stdoutRd, HANDLE_FLAG_INHERIT, 0)) {
+        goto exit;
+    }
+
+     if (!CreatePipe(&stdinRd, &stdinWr, &saAttr, 0)) {
+        return;
+    }
+
+    if(!SetHandleInformation(stdinWr, HANDLE_FLAG_INHERIT, 0)) {
+        goto exit;
+    }
+
+    ZeroMemory( &piProcInfo, sizeof(PROCESS_INFORMATION) );
+    ZeroMemory( &siStartInfo, sizeof(STARTUPINFO) );
+    siStartInfo.cb = sizeof(STARTUPINFO); 
+    siStartInfo.hStdError = stdoutWr;
+    siStartInfo.hStdOutput = stdoutWr;
+    siStartInfo.hStdInput = stdinRd;
+    siStartInfo.dwFlags |= STARTF_USESTDHANDLES;
+
+    bSuccess = CreateProcess(NULL,
+      cmdline,// command line 
+      NULL,          // process security attributes 
+      NULL,          // primary thread security attributes 
+      TRUE,          // handles are inherited 
+      CREATE_NO_WINDOW, // creation flags 
+      NULL,          // use parent's environment 
+      NULL,          // use parent's current directory 
+      &siStartInfo,  // STARTUPINFO pointer 
+      &piProcInfo);  // receives PROCESS_INFORMATION
+
+    if(!bSuccess) {
+        goto exit;
+    }
+    
+    CloseHandle(piProcInfo.hProcess);
+    CloseHandle(piProcInfo.hThread);
+
+    bSuccess = ReadFile(stdoutRd, str, sizeof(str)-1, &dwRead, NULL);
+    if(bSuccess && dwRead > 0)
     {
-        FILE *file = _popen("Lorris.exe -v", "r");
-        if(!file)
-            return;
-
-        char str[256] = { 0 };
-        fgets(str, sizeof(str), file);
-        fclose(file);
-
-        if(*str != 0)
+        char *pch = strtok(str, " ,-");
+        for (int cnt = 0; pch != NULL; ++cnt)
         {
-            char *pch = strtok(str, " ,-");
-            for (int cnt = 0; pch != NULL; ++cnt)
+            switch(cnt)
             {
-                switch(cnt)
-                {
-                    case 3: snprintf(m_mode, sizeof(m_mode), "%s", pch); break;
-                    case 6: m_rev = atoi(pch); break;
-                }
-                pch = strtok(NULL, " ,-");
+                case 3: snprintf(m_mode, sizeof(m_mode), "%s", pch); break;
+                case 6: m_rev = atoi(pch); break;
             }
+            pch = strtok(NULL, " ,-");
         }
     }
+
+exit:
+    CloseHandle(stdoutRd);
+    CloseHandle(stdoutWr);
+    CloseHandle(stdinRd);
+    CloseHandle(stdinWr);
 }
 
 const char *Work::matchChangelog()

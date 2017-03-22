@@ -24,8 +24,10 @@ add_executable(LorrisUpdater
     signtool/util.c
     signtool/verify.c)
 
+set_target_properties(LorrisUpdater PROPERTIES COMPILE_FLAGS "-mwindows" )
+set_target_properties(LorrisUpdater PROPERTIES LINK_FLAGS "-mwindows" )
 set_target_properties(LorrisUpdater PROPERTIES OUTPUT_NAME updater)
-target_link_libraries(LorrisUpdater wsock32 ws2_32 wininet)
+target_link_libraries(LorrisUpdater comctl32 wsock32 ws2_32 wininet)
 
 add_executable(signtool
     easy-ecc/ecc.c
