@@ -18,6 +18,7 @@ add_executable(LorrisUpdater
     ui.cpp
     unzip.cpp
     work.cpp
+    resource.rc
 
     easy-ecc/ecc.c
     signtool/sha256.c

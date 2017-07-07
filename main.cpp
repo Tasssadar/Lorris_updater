@@ -3,13 +3,10 @@
 #include <tchar.h>
 #include <strsafe.h>
 
-// This makes it use XP/Vista/7 GUI style
-#pragma comment(linker,"\"/manifestdependency:type='win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'\"")
-
 #include "ui.h"
 #include "work.h"
 
-#define VERSION "11"
+#define VERSION "12"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
