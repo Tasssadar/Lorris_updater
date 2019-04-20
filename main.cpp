@@ -6,7 +6,7 @@
 #include "ui.h"
 #include "work.h"
 
-#define VERSION "12"
+#define VERSION "13"
 
 LRESULT CALLBACK WndProc(HWND, UINT, WPARAM, LPARAM);
 
