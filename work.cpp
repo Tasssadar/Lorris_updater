@@ -281,7 +281,7 @@ bool Work::runLorris()
     std::wstring str_path(path);
     str_path += TEXT("\\Lorris.exe");
 
-    int res = (int)ShellExecute(GetDesktopWindow(), TEXT("open"), str_path.c_str(), NULL, path, SW_SHOWNORMAL);
+    uintptr_t res = (uintptr_t)ShellExecute(GetDesktopWindow(), TEXT("open"), str_path.c_str(), NULL, path, SW_SHOWNORMAL);
     return res > 32;
 }
 

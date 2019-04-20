@@ -1,4 +1,5 @@
 # cmake -DCMAKE_TOOLCHAIN_FILE=../mingw32-toolchain.cmake -DCMAKE_BUILD_TYPE=Release
+# cmake -DCMAKE_TOOLCHAIN_FILE=../mingw64-toolchain.cmake -DCMAKE_BUILD_TYPE=Release ..
 
 cmake_minimum_required (VERSION 2.6)
 
